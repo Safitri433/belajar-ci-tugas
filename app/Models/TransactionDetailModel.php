@@ -44,15 +44,15 @@ class TransactionDetailModel extends Model
     protected $beforeDelete   = [];
     protected $afterDelete    = [];
 
-    public function getProductsByTransactionIds(array $transactionIds)
+  public function getProductsByTransactionIds(array $transactionIds)
 {
     if (empty($transactionIds)) {
         return [];
     }
 
     $details = $this->select('transaction_detail.*, product.nama, product.harga, product.foto')
-        ->join('product', 'transaction_detail.product_id = product.id')
-        ->whereIn('transaction_id', $transactionIds)
+        ->join('product', 'product.id = transaction_detail.product_id')
+        ->whereIn('transaction_detail.transaction_id', $transactionIds)
         ->findAll();
 
     $products = [];

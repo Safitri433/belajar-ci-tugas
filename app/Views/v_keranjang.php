@@ -32,9 +32,25 @@ if (session()->getFlashData('success')) {
                 <tr>
                     <td><?= $item['name'] ?></td>
                     <td><img src="<?= base_url() . "img/" . $item['options']['foto'] ?>" width="100px"></td>
-                    <td><?= number_to_currency($item['price'], 'IDR') ?></td> 
+                    <td>
+        <?php
+            $hargaDiskon = $item['price'] - $diskon;
+            if($hargaDiskon < 0){
+            $hargaDiskon = 0;
+        }   
+        ?>
+
+                    <del class="text-danger">
+                    <?= number_to_currency($item['price'], 'IDR') ?>
+                    </del>
+                    <br>
+
+                    <?= number_to_currency($hargaDiskon, 'IDR') ?>
+                    </td>
                     <td><input type="number" min="1" name="qty<?= $i++ ?>" class="form-control" value="<?= $item['qty'] ?>"></td>
-                    <td><?= number_to_currency($item['subtotal'], 'IDR') ?></td>
+                    <td>
+                        <?= number_to_currency($hargaDiskon * $item['qty'], 'IDR') ?>
+                    </td>
                     <td>
                        <a href="<?= base_url('keranjang/delete/' . $item['rowid'] . '') ?>" class="btn btn-danger"><i class="bi bi-trash"></i></a>
                     </td>
@@ -45,10 +61,24 @@ if (session()->getFlashData('success')) {
         ?>
     </tbody>
 </table>
-<div class="alert alert-info">
-    <?= "Total = " . number_to_currency($total, 'IDR') ?>
-</div>
+<?php
+$totalDiskon = 0;
 
+foreach($items as $item){
+
+    $hargaDiskon = $item['price'] - $diskon;
+
+    if($hargaDiskon < 0){
+        $hargaDiskon = 0;
+    }
+
+    $totalDiskon += $hargaDiskon * $item['qty'];
+}
+?>
+
+<div class="alert alert-info">
+    Total = <?= number_to_currency($totalDiskon, 'IDR') ?>
+</div>
 <button type="submit" class="btn btn-primary">Perbarui Keranjang</button>
  <a class="btn btn-warning" href="<?= base_url() ?>keranjang/clear">Kosongkan Keranjang</a>
 <?php if (!empty($items)) : ?>

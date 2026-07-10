@@ -39,3 +39,16 @@ $routes->get('ajax/costs','TransaksiController::costs', ['filter' => 'auth']);
 $routes->resource('api/products', ['controller' => 'Api\ProdukController']);
 
 $routes->get('api/transactions', 'Api\TransaksiController::index');
+
+$routes->get('discount', 'DiscountController::index');
+$routes->post('discount/store', 'DiscountController::store');
+$routes->post('discount/update/(:num)', 'DiscountController::update/$1');
+$routes->get('discount/delete/(:num)', 'DiscountController::delete/$1');
+
+
+$routes->post('discount/store', 'DiscountController::store');
+
+$routes->get('pembelian','PembelianController::index');
+$routes->post('pembelian/updateStatus/(:num)', 'PembelianController::updateStatus/$1');
+
+$routes->get('pembelian/detail/(:num)', 'PembelianController::detail/$1');

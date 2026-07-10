@@ -1,5 +1,54 @@
 <?= $this->extend('layout') ?>
 <?= $this->section('content') ?>
+
+<style>
+.total-kanan{
+    white-space: nowrap;
+    text-align: right;
+}
+.table td,
+.table th{
+    vertical-align: top;
+    white-space: nowrap;
+}
+
+.table td:first-child{
+    white-space: normal;
+    width: 38%;
+}
+
+.harga-lama{
+    color:red;
+    text-decoration:line-through;
+    font-size:13px;
+    display:block;
+}
+
+.harga-baru{
+    font-size:13px;
+    display:block;
+}
+
+.total-kanan{
+    text-align:right;
+    white-space:nowrap;
+}
+.table td{
+    font-size:14px;
+}
+
+.harga-lama{
+    color:red;
+    text-decoration:line-through;
+    font-size:13px;
+}
+
+.harga-baru{
+    font-size:13px;
+    font-weight:normal;
+}
+</style>
+
 <div class="row">
     <div class="col-lg-6">
         <?= form_open('buy', 'class="row g-3"') ?>
@@ -60,28 +109,61 @@
   </thead>
   <tbody>
       <?php 
-      if (!empty($items)) :
-          foreach ($items as $index => $item) :
-      ?>
-              <tr>
-                  <td><?= $item['name'] ?></td>
-                  <td><?= number_to_currency($item['price'], 'IDR') ?></td>
-                  <td><?= $item['qty'] ?></td>
-                  <td><?= number_to_currency($item['price'] * $item['qty'], 'IDR') ?></td>
-              </tr>
-      <?php
-          endforeach;
-      endif;
-      ?>
+if (!empty($items)) :
+    foreach ($items as $index => $item) :
+
+        $hargaDiskon = $item['price'];
+
+        if (!empty($discount)) {
+            $hargaDiskon = $item['price'] - $discount['nominal'];
+        }
+?>
+<tr>
+    <td><?= $item['name'] ?></td>
+
+    <td>
+    <?php if (!empty($discount)) : ?>
+
+        <span class="harga-lama">
+            <?= number_to_currency($item['price'], 'IDR') ?>
+        </span>
+        <br>
+
+        <span class="harga-baru">
+            <?= number_to_currency($hargaDiskon, 'IDR') ?>
+        </span>
+
+    <?php else : ?>
+
+        <span class="harga-baru">
+            <?= number_to_currency($item['price'], 'IDR') ?>
+        </span>
+
+    <?php endif; ?>
+</td>
+
+    <td><?= $item['qty'] ?></td>
+
+    <td>
+        <?= number_to_currency($hargaDiskon * $item['qty'], 'IDR') ?>
+    </td>
+</tr>
+
+<?php
+    endforeach;
+endif;
+?>
       <tr>
           <td colspan="2"></td>
           <td>Subtotal</td>
-          <td><?= number_to_currency($total, 'IDR') ?></td>
+          <td class="total-kanan">
+          <?= number_to_currency($total, 'IDR') ?></td>
       </tr>
       <tr>
           <td colspan="2"></td>
           <td>Total</td>
-          <td><span id="total"><?= number_to_currency($total, 'IDR') ?></span></td>
+          <td class="total-kanan">
+          <span id="total"><?= number_to_currency($total, 'IDR') ?></span></td>
       </tr>
   </tbody>
 </table>

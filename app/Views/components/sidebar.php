@@ -4,38 +4,55 @@
     <ul class="sidebar-nav" id="sidebar-nav">
 
         <li class="nav-item">
-            <a class="nav-link <?php echo (uri_string() == '') ? "" : "collapsed" ?>" href="/">
+            <a class="nav-link <?= (uri_string() == '') ? '' : 'collapsed' ?>" href="<?= base_url() ?>">
                 <i class="bi bi-grid"></i>
                 <span>Home</span>
             </a>
         </li><!-- End Home Nav -->
 
         <li class="nav-item">
-            <a class="nav-link <?php echo (uri_string() == 'keranjang') ? "" : "collapsed" ?>" href="keranjang">
+            <a class="nav-link <?= (uri_string() == 'keranjang') ? '' : 'collapsed' ?>" href="<?= base_url('keranjang') ?>">
                 <i class="bi bi-cart-check"></i>
                 <span>Keranjang</span>
             </a>
         </li><!-- End Keranjang Nav --> 
-        <?php
-        if (session()->get('role') == 'admin') {
-        ?>
+        <?php if (session()->get('role') == 'admin') : ?>
         <li class="nav-item">
-            <a class="nav-link <?php echo (uri_string() == 'produk') ? "" : "collapsed" ?>" href="produk">
+            <a class="nav-link <?= (uri_string() == 'produk') ? '' : 'collapsed' ?>" href="<?= base_url('produk') ?>">
                 <i class="bi bi-receipt"></i>
                 <span>Produk</span>
             </a>
-        </li><!-- End Produk Nav -->
-    <?php
-    }
-      ?> 
+        </li>
+        
         <li class="nav-item">
-            <a class="nav-link <?php echo (uri_string() == 'history') ? "" : "collapsed" ?>" href="history">
+            <a class="nav-link <?= (uri_string() == 'discount') ? '' : 'collapsed' ?>" href="<?= base_url('discount') ?>">
+                <i class="bi bi-tag"></i>
+            <span>Diskon</span>
+        </a>
+    </li>
+    <?php if(session()->get('role')=='admin'): ?>
+
+<li class="nav-item">
+    <a class="nav-link <?= (uri_string()=='pembelian') ? '' : 'collapsed' ?>"
+       href="<?= base_url('pembelian') ?>">
+        <i class="bi bi-bag"></i>
+        <span>Pembelian</span>
+    </a>
+</li>
+
+<?php endif; ?>
+
+<!-- TAMBAHKAN DI SINI -->
+        
+    <?php endif; ?>
+        <li class="nav-item">
+            <a class="nav-link <?= (uri_string() == 'history') ? '' : 'collapsed' ?>" href="<?= base_url('history') ?>">
                 <i class="bi bi-person"></i>
                 <span>History</span>
             </a>
         </li><!-- End History Nav -->
         <li class="nav-item">
-            <a class="nav-link <?php echo (uri_string() == 'contact') ? '' : 'collapsed' ?>" href="contact">
+            <a class="nav-link <?= (uri_string() == 'contact') ? '' : 'collapsed' ?>" href="<?= base_url('contact') ?>">
                 <i class="bi bi-envelope"></i>
                 <span>Contact</span>
             </a>

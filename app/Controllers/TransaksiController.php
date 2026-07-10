@@ -8,25 +8,37 @@ use App\Services\RajaOngkirService;
 
 use App\Models\TransactionModel;
 use App\Models\TransactionDetailModel;
+use App\Models\DiscountModel;
 
 class TransaksiController extends BaseController
 {
+    protected $discountModel;
     protected $cart;
     protected $transactionModel;
     protected $transactionDetailModel;
 
 public function __construct()
 {
+    $this->discountModel = new DiscountModel();
     helper(['number', 'form']);
     $this->cart = service('cart');
     $this->transactionModel = new TransactionModel();
     $this->transactionDetailModel = new TransactionDetailModel(); 
 }
     public function index()
-{  
+{
+    $today = date('Y-m-d');
+
+    $discount = $this->discountModel
+        ->where('tanggal', $today)
+        ->first();
+
+    $diskon = $discount['nominal'] ?? 0;
+
     $data = [
-        'items' => $this->cart->contents(), 
-        'total' => $this->cart->total() 
+        'items'   => $this->cart->contents(),
+        'total'   => $this->cart->total(),
+        'diskon'  => $diskon
     ];
 
     return view('v_keranjang', $data);
@@ -94,18 +106,23 @@ public function cart_add()
     return redirect()->to(base_url('keranjang'));
 }
 public function checkout()
-{  
+{
     $service = new RajaOngkirService();
     $response = $service->getDestination('semarang');
-    $response2 = $service->getCost('64999','65042','1000','jne');
+    $response2 = $service->getCost('64999', '65042', '1000', 'jne');
+
+    // Ambil diskon hari ini
+    $discount = $this->discountModel
+        ->where('tanggal', date('Y-m-d'))
+        ->first();
 
     $data = [
-        'items' => $this->cart->contents(),
-        'total' => $this->cart->total(),
+        'items'    => $this->cart->contents(),
+        'total'    => $this->cart->total(),
+        'discount' => $discount
     ];
 
     return view('v_checkout', $data);
-    
 }
 
 public function destinations()
@@ -163,13 +180,28 @@ foreach ($data as $item) {
     $db = \Config\Database::connect();
     $db->transStart(); 
 
-    $subtotal = 0;
-    foreach ($cartItems as $item) {
-        $subtotal += $item['qty'] * $item['price'];
-    }
+    // ambil diskon hari ini
+$today = date('Y-m-d');
 
+$discount = $this->discountModel
+    ->where('tanggal', $today)
+    ->first();
+
+$diskonNominal = $discount['nominal'] ?? 0;
+
+$subtotal = 0;
     $ongkir = (int) $this->request->getPost('ongkir');
 
+    foreach ($cartItems as $item) {
+
+    $hargaSetelahDiskon = $item['price'] - $diskonNominal;
+
+    if ($hargaSetelahDiskon < 0) {
+        $hargaSetelahDiskon = 0;
+    }
+
+    $subtotal += $hargaSetelahDiskon * $item['qty'];
+}
     $transaction = [
         'username'    => $this->request->getPost('username'),
         'alamat'      => $this->request->getPost('alamat'),
@@ -186,16 +218,25 @@ foreach ($data as $item) {
 
     $transactionId = $this->transactionModel->getInsertID();
 
+    
+
     // insert transaction detail
     foreach ($cartItems as $item) {
-        $this->transactionDetailModel->insert([
-            'transaction_id' => $transactionId,
-            'product_id'     => $item['id'],
-            'jumlah'         => $item['qty'],
-            'diskon'         => 0,
-            'subtotal_harga' => $item['qty'] * $item['price'] 
-        ]);
+
+    $hargaSetelahDiskon = $item['price'] - $diskonNominal;
+
+    if ($hargaSetelahDiskon < 0) {
+        $hargaSetelahDiskon = 0;
     }
+
+    $this->transactionDetailModel->insert([
+        'transaction_id' => $transactionId,
+        'product_id'     => $item['id'],
+        'jumlah'         => $item['qty'],
+        'diskon'         => $diskonNominal,
+        'subtotal_harga' => $hargaSetelahDiskon * $item['qty']
+    ]);
+}
 
     $db->transComplete();
 
@@ -207,20 +248,24 @@ foreach ($data as $item) {
     $this->cart->destroy();
     return redirect()->to(base_url());
 }
-    public function history()
+   public function history()
 {
-    $username = session()->get('username'); 
- 
-    $transactions = $this->transactionModel->where('username', $username)->findAll();
+    $username = session()->get('username');
+
+    $transactions = $this->transactionModel
+        ->where('username', $username)
+        ->findAll();
+
     $transactionIds = array_column($transactions, 'id');
 
-    $products = $this->transactionDetailModel->getProductsByTransactionIds($transactionIds);
+    $products = $this->transactionDetailModel
+        ->getProductsByTransactionIds($transactionIds);
 
     $data = [
-        'username'      => $username,
-        'transactions'  => $transactions,
-        'products'      => $products
-    ]; 
+        'username' => $username,
+        'transactions' => $transactions,
+        'products' => $products
+    ];
 
     return view('v_history', $data);
 }
